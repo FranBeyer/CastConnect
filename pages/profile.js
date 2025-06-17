@@ -1,32 +1,52 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+// Only create Supabase client on the client-side
+const supabase = typeof window !== 'undefined'
+  ? createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
+  : null;
 
 export default function Profile() {
   const [aiOptIn, setAiOptIn] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load user's existing opt-in status
+    if (!supabase) return;
+
     const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (user && !userError) {
         const { data, error } = await supabase
           .from('users')
           .select('ai_opt_in')
           .eq('id', user.id)
           .single();
-        if (data) setAiOptIn(data.ai_opt_in);
+
+        if (data && !error) {
+          setAiOptIn(data.ai_opt_in);
+        }
       }
+
+      setLoading(false);
     };
+
     fetchData();
   }, []);
 
   const handleChange = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    if (!supabase) return;
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) return;
 
     const newStatus = !aiOptIn;
@@ -35,8 +55,12 @@ export default function Profile() {
       .update({ ai_opt_in: newStatus })
       .eq('id', user.id);
 
-    if (!error) setAiOptIn(newStatus);
+    if (!error) {
+      setAiOptIn(newStatus);
+    }
   };
+
+  if (loading) return <p>Loading...</p>;
 
   return (
     <div>
@@ -51,3 +75,4 @@ export default function Profile() {
     </div>
   );
 }
+
