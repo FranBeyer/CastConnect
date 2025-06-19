@@ -108,3 +108,11 @@ export default function Home() {
     </div>
   );
 }
+git add pages/index.js
+git commit -m "Add styled Hero and AI opt-in section to homepage"
+git push
+
+git add pages/index.js
+git commit -m "Add styled homepage hero and AI opt-in sections"
+git push
+
