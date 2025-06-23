@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -26,6 +28,7 @@ export default function Home() {
         🌟 Welcome to CastConnect
       </h1>
 
+      {/* Talent Grid */}
       <section>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Featured Talent</h2>
         <div style={{
@@ -73,3 +76,4 @@ export default function Home() {
     </div>
   );
 }
+
