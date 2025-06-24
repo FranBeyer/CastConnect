@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
+// ✅ Supabase client setup (leave this in)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
+
 export default function Home() {
   const [talents, setTalents] = useState([]);
 
@@ -71,4 +77,5 @@ export default function Home() {
     </div>
   );
 }
+
 
