@@ -115,4 +115,8 @@ git push
 git add pages/index.js
 git commit -m "Add styled homepage hero and AI opt-in sections"
 git push
+git add pages/index.js
+git commit -m "Add styled homepage with talent grid and AI commercial opt-in"
 
+
+git push
