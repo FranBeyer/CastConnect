@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -11,47 +10,55 @@ export default function Profile() {
   const [aiOptIn, setAiOptIn] = useState(false);
 
   useEffect(() => {
-    // Load user's existing opt-in status
-    const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data, error } = await supabase
-          .from('users')
-          .select('ai_opt_in')
-          .eq('id', user.id)
-          .single();
-        if (data) setAiOptIn(data.ai_opt_in);
+    const fetchProfile = async () => {
+      const { data, error } = await supabase
+        .from('users') // Or 'Talent' if that's the correct table
+        .select('ai_opt_in')
+        .limit(1)
+        .single();
+
+      if (data) {
+        setAiOptIn(data.ai_opt_in);
       }
     };
-    fetchData();
+
+    fetchProfile();
   }, []);
 
-  const handleChange = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const newStatus = !aiOptIn;
+  const handleToggle = async () => {
+    setAiOptIn(!aiOptIn);
     const { error } = await supabase
-      .from('users')
-      .update({ ai_opt_in: newStatus })
-      .eq('id', user.id);
+      .from('users') // Or 'Talent' if using Talent table
+      .update({ ai_opt_in: !aiOptIn })
+      .eq('id', 1); // Replace with actual user ID or session ID
 
-    if (!error) setAiOptIn(newStatus);
+    if (error) console.error(error);
   };
 
   return (
-    <div>
-      <label>
-        <input
-          type="checkbox"
-          checked={aiOptIn}
-          onChange={handleChange}
-        />
-        I agree my face may be used for AI creation (a fee will be paid)
-      </label>
+    <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
+      <h1>🧑‍💻 Profile Settings</h1>
+      <div style={{
+        backgroundColor: '#fff',
+        padding: '1.5rem',
+        borderRadius: '10px',
+        boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
+        marginTop: '1rem'
+      }}>
+        <h2>🤖 AI Consent</h2>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontWeight: 'bold' }}>
+          <input
+            type="checkbox"
+            checked={aiOptIn}
+            onChange={handleToggle}
+          />
+          I consent to AI usage of my likeness.
+        </label>
+        <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', color: '#666' }}>
+          You can withdraw this at any time. Licensing fees may apply.
+        </p>
+      </div>
     </div>
   );
 }
-git add pages/profile.js
-git commit -m "Fix Supabase import typo"
-git push
+

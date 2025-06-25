@@ -1,37 +1,27 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
-  const [aiOptIn, setAiOptIn] = useState(false);
+  const [talents, setTalents] = useState([]);
 
-  const handleToggle = () => {
-    setAiOptIn(!aiOptIn);
-    // You could later connect this to a Supabase update
-  };
+  useEffect(() => {
+    // Only run in the browser:
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
 
-  // Sample talent data
-  const talents = [
-    {
-      id: 1,
-      name: "Alex Rivera",
-      location: "London, UK",
-      category: "Actor, Model",
-      photo: "https://via.placeholder.com/150",
-    },
-    {
-      id: 2,
-      name: "Maya Chen",
-      location: "New York, USA",
-      category: "Dancer",
-      photo: "https://via.placeholder.com/150",
-    },
-    {
-      id: 3,
-      name: "Leo Smith",
-      location: "Sydney, Australia",
-      category: "Actor",
-      photo: "https://via.placeholder.com/150",
-    },
-  ];
+    const fetchTalents = async () => {
+      const { data, error } = await supabase
+        .from('Talent')
+        .select('*')
+        .limit(12);
+
+      if (error) console.error('Error fetching talent:', error);
+      else setTalents(data);
+    };
+
+    fetchTalents();
+  }, []); // ← empty deps, runs only once in browser
 
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', padding: '2rem', backgroundColor: '#f9f9f9' }}>
@@ -39,12 +29,11 @@ export default function Home() {
         🌟 Welcome to CastConnect
       </h1>
 
-      {/* Talent Grid */}
       <section>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Featured Talent</h2>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
           gap: '1.5rem'
         }}>
           {talents.map(talent => (
@@ -65,6 +54,12 @@ export default function Home() {
               <h3>{talent.name}</h3>
               <p>{talent.location}</p>
               <p style={{ fontStyle: 'italic', fontSize: '0.9rem' }}>{talent.category}</p>
+              <p style={{ fontSize: '0.85rem', color: '#666', margin: '0.5rem 0' }}>
+                {talent.bio}
+              </p>
+              <p style={{ fontSize: '0.85rem', color: '#555' }}>
+                <strong>Skills:</strong> {Array.isArray(talent.special_skills) ? talent.special_skills.join(', ') : 'N/A'}
+              </p>
               <button style={{
                 marginTop: '0.5rem',
                 backgroundColor: '#008080',
@@ -78,45 +73,14 @@ export default function Home() {
           ))}
         </div>
       </section>
-
-      {/* AI Opt-in Section */}
-      <section style={{
-        marginTop: '4rem',
-        padding: '2rem',
-        backgroundColor: '#fff',
-        borderRadius: '12px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-      }}>
-        <h2 style={{ marginBottom: '1rem' }}>🤖 AI Model Consent</h2>
-        <p style={{ marginBottom: '1rem' }}>
-          Would you like to opt-in to allow your face to be used in AI-generated casting visuals?
-          If selected, you may be eligible for additional licensing fees.
-        </p>
-        <label style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          fontWeight: 'bold'
-        }}>
-          <input type="checkbox" checked={aiOptIn} onChange={handleToggle} />
-          I consent to AI usage of my likeness.
-        </label>
-        <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', color: '#666' }}>
-          You can withdraw this consent at any time. For details, please see our policy.
-        </p>
-      </section>
     </div>
   );
 }
-git add pages/index.js
-git commit -m "Add styled Hero and AI opt-in section to homepage"
-git push
 
-git add pages/index.js
-git commit -m "Add styled homepage hero and AI opt-in sections"
-git push
-git add pages/index.js
-git commit -m "Add styled homepage with talent grid and AI commercial opt-in"
+// We import createClient dynamically so it only loads in the browser:
+function createClient(url, key) {
+  // avoid loading @supabase/supabase-js on the server:
+  const { createClient: makeClient } = require('@supabase/supabase-js');
+  return makeClient(url, key);
+}
 
-
-git push
