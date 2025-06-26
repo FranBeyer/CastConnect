@@ -1,9 +1,19 @@
 import { useEffect, useState } from 'react';
 
-export default function Home() {
+
+import { createClient } from '@supabase/supabase-js';
+
+// ✅ Supabase client setup (leave this in)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
+
+
   const [talents, setTalents] = useState([]);
 
   useEffect(() => {
+
     // Only run in the browser:
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -22,6 +32,19 @@ export default function Home() {
 
     fetchTalents();
   }, []); // ← empty deps, runs only once in browser
+
+    const fetchTalents = async () => {
+      const { data, error } = await supabase
+        .from('Talent')
+        .select('*')
+        .limit(12);
+      if (error) console.error(error);
+      else setTalents(data);
+    };
+
+  
+
+
 
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', padding: '2rem', backgroundColor: '#f9f9f9' }}>
@@ -58,7 +81,11 @@ export default function Home() {
                 {talent.bio}
               </p>
               <p style={{ fontSize: '0.85rem', color: '#555' }}>
+
                 <strong>Skills:</strong> {Array.isArray(talent.special_skills) ? talent.special_skills.join(', ') : 'N/A'}
+
+                <strong>Skills:</strong> {talent.special_skills?.join(', ') || 'N/A'}
+
               </p>
               <button style={{
                 marginTop: '0.5rem',
@@ -77,10 +104,4 @@ export default function Home() {
   );
 }
 
-// We import createClient dynamically so it only loads in the browser:
-function createClient(url, key) {
-  // avoid loading @supabase/supabase-js on the server:
-  const { createClient: makeClient } = require('@supabase/supabase-js');
-  return makeClient(url, key);
-}
 
